@@ -52,14 +52,14 @@ def content_crawler(db: Session = Depends):
                     if i02:
                         ititle = i02.find('h1', class_='title')
                         if ititle:
-                            title = ititle.get_text()
+                            title = utils.cleaner(ititle.get_text())
                         ilabel = i02.find('div', class_='author')
                         if ilabel:
-                            label = ilabel.get_text()
-                            author = ilabel.get_text()
+                            label = utils.cleaner(ilabel.get_text())
+                            author = utils.cleaner(ilabel.get_text())
                         idate = i02.find('div', class_='date')
                         if idate:
-                            posted_at = idate.get_text()     
+                            posted_at = utils.cleaner(idate.get_text())     
             
                         # get contents
                         j0 = i02.find('div', class_='detail_wrap')
@@ -90,7 +90,6 @@ def content_crawler(db: Session = Depends):
                                         readfullarticle.decompose()
 
                                 content = utils.cleaner(j01.text)
-                                print(content)
 
                                 if content:
                                     contents.append({

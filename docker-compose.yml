@@ -1,0 +1,16 @@
+version: '3'
+services:
+  web:
+    restart: unless-stopped
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/var/www/html
+      - garbage:/var/www/html/frw/log
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+volumes:
+  garbage:
+    external: true
+  
