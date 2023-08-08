@@ -32,6 +32,7 @@ def content_crawler(db: Session = Depends):
         urls = []
 
         record = db.query(Urls).filter(Urls.status == 'N').distinct(Urls.url).all()
+      
         for i in record:
             driver.get(i.url)
             html = driver.page_source
@@ -41,6 +42,7 @@ def content_crawler(db: Session = Depends):
             label = ''
             author = ''
             posted_at = ''
+            content = ''
 
             i0 = soup.find('section', id='content')
             if i0:
@@ -59,68 +61,56 @@ def content_crawler(db: Session = Depends):
                         if idate:
                             posted_at = idate.get_text()     
             
-                        # article
-                        j0 = ''
+                        # get contents
+                        j0 = i02.find('div', class_='detail_wrap')
+                        if j0:
+                            j01 = j0.find('div', class_='detail_text')
+                            if j01:
+                                # remove unwanted elements
+                                paradetailx = j01.find_all("div", {"class": "paradetail"})
+                                if paradetailx:
+                                    for paradetail in j01.find_all("div", {"class": "paradetail"}):
+                                        paradetail.decompose()
+                                multipleboxx = j01.find_all("div", {"class": "multiple-box"})
+                                if multipleboxx:
+                                    for multiplebox in j01.find_all("div", {"class": "multiple-box"}):
+                                        multiplebox.decompose() 
+                                linksisipx = j01.find_all("table", {"class": "linksisip"})
+                                if linksisipx:
+                                    for linksisip in j01.find_all("table", {"class": "linksisip"}):
+                                        linksisip.decompose()
+                                topiksisipx = j01.find_all("table", {"class": "topiksisip"})
+                                if topiksisipx:
+                                    for topiksisip in j01.find_all("table", {"class": "topiksisip"}):
+                                        topiksisip.decompose()
+                                if j01.find("div", {"class": "read-full-article"}):
+                                    for u in j01.find("div", {"class": "read-full-article"}).find_next_siblings():
+                                        u.decompose()
+                                    for readfullarticle in j01.find_all("div", {"class": "read-full-article"}):
+                                        readfullarticle.decompose()
 
-            # box = soup.find("section", class_="content")
-            # title = utils.cleaner(box.find('h1', class_='title').text)
-            # label = utils.cleaner(box.find("div", class_="author").text)
-            # author = utils.cleaner(box.find("div", class_="author").text)
-            # datetime = utils.cleaner(box.find("div", class_="date").text)
-            # contentx = soup.find('article').find("div", class_="detail_text")
-            # if contentx:
-            #     # remove unwanted elements
-            #     paradetailx = contentx.find_all("div", {"class": "paradetail"})
-            #     if paradetailx:
-            #         for paradetail in contentx.find_all("div", {"class": "paradetail"}):
-            #             paradetail.decompose()
-                
-            #     multipleboxx = contentx.find_all("div", {"class": "multiple-box"})
-            #     if multipleboxx:
-            #         for multiplebox in contentx.find_all("div", {"class": "multiple-box"}):
-            #             multiplebox.decompose()
-                    
-            #     linksisipx = contentx.find_all("table", {"class": "linksisip"})
-            #     if linksisipx:
-            #         for linksisip in contentx.find_all("table", {"class": "linksisip"}):
-            #             linksisip.decompose()
-                
-            #     topiksisipx = contentx.find_all("table", {"class": "topiksisip"})
-            #     if topiksisipx:
-            #         for topiksisip in contentx.find_all("table", {"class": "topiksisip"}):
-            #             topiksisip.decompose()
+                                content = utils.cleaner(j01.text)
+                                print(content)
 
-            #     if contentx.find("div", {"class": "read-full-article"}):
-            #         for u in contentx.find("div", {"class": "read-full-article"}).find_next_siblings():
-            #             u.decompose()
-            #         for readfullarticle in contentx.find_all("div", {"class": "read-full-article"}):
-            #             readfullarticle.decompose()
-                
-            #     content = utils.cleaner(contentx.text)
+                                if content:
+                                    contents.append({
+                                        'crawled_at': dt.now().strftime('%Y-%m-%d %H:%M:%S'), 
+                                        'label': label, 
+                                        'author': author, 
+                                        'posted_at': posted_at, 
+                                        'title': title, 
+                                        'content': content, 
+                                        'url_id': i.id, 
+                                        'source_id': i.source_id
+                                    })
 
-            #     media_article = soup.find('article').find('div', class_='media_artikel')
-            #     if media_article:
-            #         captions = media_article.find_all('div', class_='caption')
-            #         for cap in captions:
-            #             content += ' ' + utils.cleaner(cap.text)
-                
-            #     contents.append({
-            #         'crawled_at': dt.now().strftime('%Y-%m-%d %H:%M:%S'), 
-            #         'label': label, 
-            #         'author': author, 
-            #         'posted_at': datetime, 
-            #         'title': title, 
-            #         'content': content, 
-            #         'url_id': i.id, 
-            #         'source_id': i.source_id
-            #     })
-            urls.append({'id': i.id, 'status': 'Y'})
+                                    urls.append({'id': i.id, 'status': 'Y'})
             time.sleep(4)
         
         driver.close()
-        # db.bulk_insert_mappings(Contents, contents)
-        # db.bulk_update_mappings(Urls, urls)
-        # db.commit()
+        db.bulk_insert_mappings(Contents, contents)
+        db.bulk_update_mappings(Urls, urls)
+        db.commit()
         print('End: {}'.format(dt.now()))
         print('Duration: {}'.format(dt.now() - start_time))
     except Exception as e:
