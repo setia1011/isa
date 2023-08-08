@@ -1,0 +1,9 @@
+# Get all contents with pagination
+@page=1
+@per_page=2
+@keywords=imei
+
+GET http://127.0.0.1:8000/v1/contents
+    ?page={{page}}
+    &per_page={{per_page}}
+    &keywords={{keywords}}

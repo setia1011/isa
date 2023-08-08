@@ -1,0 +1,2 @@
+# Setup references data to database
+GET http://127.0.0.1:8000/v1/install

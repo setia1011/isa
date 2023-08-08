@@ -1,0 +1,5 @@
+# Crawling articles from CNN Indonesia
+GET http://127.0.0.1:8000/v1/crawler-cnn-indonesia
+    ?keywords=rocky gerung
+    # &date=2023/08/05
+    &pages=2
