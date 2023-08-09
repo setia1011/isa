@@ -10,7 +10,7 @@ def get_application():
         debug=True,
         title=settings.PROJECT_NAME,
         version="v1",
-        docs_url='/docs-api',
+        docs_url='/doc-api',
         redoc_url='/redoc-api',
         description="Intelligence Socio Analysis (ISA) is a web based application for analyzing the data from social sources, such as Twitter, Facebook, and LinkedIn.",
         terms_of_service="https://isa.techack.id/terms/",

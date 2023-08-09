@@ -9,7 +9,7 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc
 from app.core.config import settings
-from app.models import Urls, Contents
+from app.models import Url, Content
 import re
 
 
@@ -31,7 +31,7 @@ def content_crawler(db: Session = Depends):
         contents = []
         urls = []
 
-        record = db.query(Urls).filter(Urls.status == 'N').distinct(Urls.url).all()
+        record = db.query(Url).filter(Url.status == 'new').distinct(Url.url).all()
       
         for i in record:
             driver.get(i.url)
@@ -103,16 +103,17 @@ def content_crawler(db: Session = Depends):
                                         'source_id': i.source_id
                                     })
 
-                                    urls.append({'id': i.id, 'status': 'Y'})
+                                    urls.append({'id': i.id, 'status': 'crawled'})
+                                else:
+                                    urls.append({'id': i.id, 'status': 'failed'})
             time.sleep(4)
         
         driver.close()
-        db.bulk_insert_mappings(Contents, contents)
-        db.bulk_update_mappings(Urls, urls)
+        db.bulk_insert_mappings(Content, contents)
+        db.bulk_update_mappings(Url, urls)
         db.commit()
         print('End: {}'.format(dt.now()))
         print('Duration: {}'.format(dt.now() - start_time))
     except Exception as e:
         db.rollback()
-        raise
         

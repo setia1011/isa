@@ -6,7 +6,6 @@ from app.database import db_session
 from app.core.config import settings
 from app.v1.services import install as install_service
 from app.v1.schemas import simple as simple_schema
-import os
 import alembic.config
 import mysql.connector
 
@@ -51,4 +50,5 @@ async def install(db: Session = Depends(db_session)):
         db.close()
         return {"detail": "The system is ready!"}
     except Exception as e:
+        raise
         raise HTTPException(status_code=422, detail='Failed')

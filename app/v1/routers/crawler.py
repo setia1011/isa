@@ -5,27 +5,29 @@ from app.v1.services import crawler as crawler_services
 from app.v1.schemas import crawler as crawler_schema, simple as simple_schema
 from app.v1.crawlers.cnbc_indonesia import url_crawler as url_crawler_cnn_indonesia
 from app.v1.crawlers.cnbc_indonesia import content_crawler as content_crawler_cnn_indonesia
+from datetime import datetime as dt
 
 
 router = APIRouter()
 
+
 @router.get('/crawler-cnn-indonesia', response_model=simple_schema.Simple)
-async def crawler_cnn_indonesia(keywords: str = 'beacukai', date: str = '', pages: int = 2, db: Session = Depends(db_session)):
+async def crawler_cnn_indonesia(keywords: str = 'beacukai', date: str = dt.now().strftime('%Y/%m/%d'), pages: int = 2, db: Session = Depends(db_session)):
     try:
-        # url_crawler_cnn_indonesia.url_crawler(keywords=keywords, date=date, pages=pages, db=db)
+        url_crawler_cnn_indonesia.url_crawler(keywords=keywords, date=date, pages=pages, db=db)
         content_crawler_cnn_indonesia.content_crawler(db=db)
         return {"detail": "Succeeded"}
     except Exception as e:
-        raise
+        # raise
         return {"detail": "Failed"}
 
 @router.get('/urls', response_model=crawler_schema.Urls, description='Get all urls with pagination')
-async def urls(source_id: int = '', page: int = 1, per_page: int = 10, db: Session = Depends(db_session)):
+async def urls(status: str = 'crawled', source_id: int = 1, page: int = 1, per_page: int = 10, db: Session = Depends(db_session)):
     try:
         import math
         offset = (page-1) * per_page
-        urls = crawler_services.urls(source_id=source_id, page=offset, per_page=per_page, db=db)
-        urls_count = crawler_services.urls_count(source_id=source_id, db=db)
+        urls = crawler_services.urls(status=status, source_id=source_id, page=offset, per_page=per_page, db=db)
+        urls_count = crawler_services.urls_count(status=status, source_id=source_id, db=db)
         data = {}
         data['items'] = urls
         data['total_pages'] = math.ceil(urls_count/per_page)
